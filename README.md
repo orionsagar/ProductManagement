@@ -190,6 +190,10 @@ ProductManagementBackend/
 
 ---
 
+## Data Model Diagram or UML Diagram
+
+![Diagram](https://raw.githubusercontent.com/orionsagar/ProductManagement/637399a851e66fa1ba6a95f3a80991c1f19fae5d/Untitled.png)
+
 ## 📝 License
 
 MIT — free to use and modify.
