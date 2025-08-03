@@ -73,8 +73,15 @@ namespace ProductManagement.Api.Controllers
 
         [HttpPost]
         //[Authorize(Roles = "Admin,ProductManager,ProjectManager,ProductionEngineer")]
-        public async Task<IActionResult> Create(ProductItem item)
+        public async Task<IActionResult> Create(ProductItemDto itemdto)
         {
+            var item = new ProductItem
+            {
+                Name = itemdto.Name,
+                Description = itemdto.Description,
+                Status = itemdto.Status,
+                ProjectId = itemdto.ProjectId
+            };
             _db.ProductItems.Add(item);
             await _db.SaveChangesAsync();
 
@@ -90,6 +97,35 @@ namespace ProductManagement.Api.Controllers
 
             return Ok(item);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProductItem(Guid id, [FromBody] ProductItemDto dto)
+        {
+            var item = await _db.ProductItems.FindAsync(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            item.Name = dto.Name;
+            item.Description = dto.Description;
+            item.Status = dto.Status;
+            item.ProjectId = dto.ProjectId;
+
+            await _db.SaveChangesAsync();
+
+            await LogAuditAsync(
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Unknown",
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Unknown",
+                nameof(ProductItem),
+                item.Id.ToString(),
+                "Edit Product Item",
+                item
+            );
+
+            return Ok(item);
+        }
+
 
 
         private async Task LogAuditAsync(string userId, string userName, string entityName, string entityId, string action, object changes)

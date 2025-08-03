@@ -29,8 +29,16 @@ namespace ProductManagement.Api.Controllers
 
         [HttpPost]
         //[Authorize(Roles = "Admin,ProductManager")]
-        public async Task<IActionResult> Create([FromBody] Product product)
+        public async Task<IActionResult> Create([FromBody] ProductDto productdto)
         {
+            var product = new Product
+            {
+                Name = productdto.Name,
+                Version = productdto.Version,
+                Description = productdto.Description,
+                Price = productdto.Price
+            };
+
             _db.Products.Add(product);
             await _db.SaveChangesAsync();
 
@@ -46,6 +54,35 @@ namespace ProductManagement.Api.Controllers
 
             return Ok(product);
             //return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+        }
+
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductDto dto)
+        {
+            var product = await _db.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            product.Name = dto.Name;
+            product.Version = dto.Version;
+            product.Description = dto.Description;
+            product.Price = dto.Price;
+
+            await _db.SaveChangesAsync();
+
+            await LogAuditAsync(
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Unknown",
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Unknown",
+                nameof(Product),
+                id.ToString(),
+                "Edit Product",
+                product
+            );
+
+            return Ok(product);
         }
 
 

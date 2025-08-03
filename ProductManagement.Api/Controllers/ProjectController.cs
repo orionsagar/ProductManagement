@@ -30,8 +30,15 @@ namespace ProductManagement.Api.Controllers
 
         [HttpPost]
         //[Authorize(Roles = "Admin,ProductManager,ProjectManager")]
-        public async Task<IActionResult> Create(Project project)
+        public async Task<IActionResult> Create(ProjectDto projectdto)
         {
+            var project = new Project
+            {
+                Name = projectdto.Name,
+                Description = projectdto.Description,
+                ProductId = projectdto.ProductId
+            };
+
             _db.Projects.Add(project);
             await _db.SaveChangesAsync();
 
@@ -51,6 +58,35 @@ namespace ProductManagement.Api.Controllers
             return Ok(project);
             //return CreatedAtAction(nameof(GetById), new { id = project.Id }, project);
         }
+
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProject(Guid id, [FromBody] ProjectDto dto)
+        {
+            var project = await _db.Projects.FindAsync(id);
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            project.Name = dto.Name;
+            project.Description = dto.Description;
+            project.ProductId = dto.ProductId;
+
+            await _db.SaveChangesAsync();
+
+            await LogAuditAsync(
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Unknown",
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Unknown",
+                nameof(Project),
+                id.ToString(),
+                "Edit Project",
+                project
+            );
+
+            return Ok(project);
+        }
+
 
 
 
